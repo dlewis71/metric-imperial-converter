@@ -15,9 +15,9 @@ module.exports = function (app) {
     const numInvalid = initNum === 'invalid number';
     const unitInvalid = initUnit === 'invalid unit';
 
-    if (numInvalid && unitInvalid) return res.json('invalid number and unit'); // CHANGED
-    if (numInvalid) return res.json('invalid number'); // CHANGED
-    if (unitInvalid) return res.json('invalid unit'); // CHANGED
+    if (numInvalid && unitInvalid) return res.send('invalid number and unit'); // CHANGED
+    if (numInvalid) return res.send('invalid number'); // CHANGED
+    if (unitInvalid) return res.send('invalid unit'); // CHANGED
 
     const returnUnit = convertHandler.getReturnUnit(initUnit);
     const returnNum = convertHandler.convert(initNum, initUnit);
