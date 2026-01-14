@@ -15,21 +15,20 @@ module.exports = function (app) {
     const numInvalid = initNum === 'invalid number';
     const unitInvalid = initUnit === 'invalid unit';
 
-    if (numInvalid && unitInvalid) return res.json({ error: 'invalid number and unit' });
-    if (numInvalid) return res.json({ error: 'invalid number' });
-    if (unitInvalid) return res.json({ error: 'invalid unit' });
+    if (numInvalid && unitInvalid) return res.json('invalid number and unit'); // CHANGED
+    if (numInvalid) return res.json('invalid number'); // CHANGED
+    if (unitInvalid) return res.json('invalid unit'); // CHANGED
 
     const returnUnit = convertHandler.getReturnUnit(initUnit);
     const returnNum = convertHandler.convert(initNum, initUnit);
     const string = convertHandler.getString(initNum, initUnit, returnNum, returnUnit);
 
     return res.json({
-      initNum,
-      initUnit,
-      returnNum,
-      returnUnit,
-      string,
+      initNum: initNum,
+      initUnit: initUnit,
+      returnNum: returnNum,
+      returnUnit: returnUnit,
+      string: string,
     });
   });
-
 };
