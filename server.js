@@ -6,13 +6,19 @@ const apiRoutes = require('./routes/api');
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+// Routes
 app.use('/api', apiRoutes);
 
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
-});
+// Only start server if run directly
+if (!module.parent) {
+  app.listen(port, () => {
+    console.log(`Server listening on port ${port}`);
+  });
+}
 
-module.exports = app; // for testing
+// Export app for FCC testing
+module.exports = app;

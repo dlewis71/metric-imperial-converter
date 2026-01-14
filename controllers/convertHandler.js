@@ -1,93 +1,71 @@
-const convertHandler = {};
-
-// Supported units and return units
-const unitMap = {
-  gal: 'L',
-  L: 'gal',
-  mi: 'km',
-  km: 'mi',
-  lbs: 'kg',
-  kg: 'lbs'
-};
-
-// Full spell-out of units
-const spellOutMap = {
-  gal: 'gallons',
-  L: 'liters',
-  mi: 'miles',
-  km: 'kilometers',
-  lbs: 'pounds',
-  kg: 'kilograms'
-};
-
-// Conversion rates
-const conversionRates = {
-  gal: 3.78541,
-  L: 1 / 3.78541,
-  mi: 1.60934,
-  km: 1 / 1.60934,
-  lbs: 0.453592,
-  kg: 1 / 0.453592
-};
-
-// Get numerical part of input
-convertHandler.getNum = function(input) {
-  const result = input.match(/^[\d/.]+/);
-  if (!result) return 1; // default if no number
-  const num = result[0];
-
-  if (num.split('/').length > 2) return 'invalid number'; // double fraction
-  try {
-    return eval(num); // supports fractions like 1/2 or 5.4/2
-  } catch (err) {
-    return 'invalid number';
+// controllers/convertHandler.js
+class ConvertHandler {
+  constructor() {
+    this.units = {
+      gal: { name: 'gal', return: 'L', factor: 3.78541, spell: 'gallons' },
+      L:   { name: 'L', return: 'gal', factor: 1 / 3.78541, spell: 'liters' },
+      mi:  { name: 'mi', return: 'km', factor: 1.60934, spell: 'miles' },
+      km:  { name: 'km', return: 'mi', factor: 1 / 1.60934, spell: 'kilometers' },
+      lbs: { name: 'lbs', return: 'kg', factor: 0.453592, spell: 'pounds' },
+      kg:  { name: 'kg', return: 'lbs', factor: 1 / 0.453592, spell: 'kilograms' }
+    };
   }
-};
 
-// Get unit part of input
-convertHandler.getUnit = function(input) {
-  const result = input.match(/[a-zA-Z]+$/);
-  if (!result) return 'invalid unit';
-  let unit = result[0];
+  // Extract the numeric part from input
+  getNum(input) {
+    const match = input.match(/^[\d.\/]+/); // match numbers, decimals, fractions
+    if (!match) return 1; // default to 1 if no number
 
-  if (unit.toLowerCase() === 'l') return 'L'; // uppercase for liters
-  unit = unit.toLowerCase();
+    const numStr = match[0];
 
-  return unitMap[unit] ? (unit === 'l' ? 'L' : unit) : 'invalid unit';
-};
+    if ((numStr.match(/\//g) || []).length > 1) return 'invalid number'; // double fraction
 
-// Get the unit to convert to
-convertHandler.getReturnUnit = function(initUnit) {
-  if (initUnit === 'L') return 'gal';
-  return unitMap[initUnit.toLowerCase()];
-};
+    if (numStr.includes('/')) {
+      const [numerator, denominator] = numStr.split('/').map(Number);
+      if (isNaN(numerator) || isNaN(denominator)) return 'invalid number';
+      return numerator / denominator;
+    }
 
-// Spell out a unit
-convertHandler.spellOutUnit = function(unit) {
-  if (unit === 'L') return spellOutMap['L'];
-  return spellOutMap[unit.toLowerCase()];
-};
+    const num = Number(numStr);
+    return isNaN(num) ? 'invalid number' : num;
+  }
 
-// Perform conversion
-convertHandler.convert = function(input) {
-  const num = this.getNum(input);
-  const unit = this.getUnit(input);
+  // Extract unit part from input
+  getUnit(input) {
+    const match = input.match(/[a-zA-Z]+$/);
+    if (!match) return 'invalid unit';
 
-  if (num === 'invalid number' && unit === 'invalid unit') return { error: 'invalid number and unit' };
-  if (num === 'invalid number') return { error: 'invalid number' };
-  if (unit === 'invalid unit') return { error: 'invalid unit' };
+    let unit = match[0].toLowerCase();
+    if (unit === 'l') unit = 'L'; // uppercase L
 
-  const normalizedUnit = unit === 'L' ? 'L' : unit.toLowerCase();
-  const returnNum = parseFloat((num * conversionRates[normalizedUnit]).toFixed(5));
-  const returnUnit = this.getReturnUnit(unit);
+    return this.units[unit] ? unit : 'invalid unit';
+  }
 
-  return {
-    initNum: num,
-    initUnit: unit,
-    returnNum,
-    returnUnit,
-    string: `${num} ${this.spellOutUnit(unit)} converts to ${returnNum} ${this.spellOutUnit(returnUnit)}`
-  };
-};
+  // Get the return unit for a given unit
+  getReturnUnit(initUnit) {
+    const unit = this.units[initUnit];
+    return unit ? unit.return : 'invalid unit';
+  }
 
-module.exports = convertHandler;
+  // Return the spelled-out version of a unit
+  spellOutUnit(unit) {
+    const u = this.units[unit];
+    return u ? u.spell : 'invalid unit';
+  }
+
+  // Perform conversion
+  convert(initNum, initUnit) {
+    const unit = this.units[initUnit];
+    if (!unit) return 'invalid unit';
+    return parseFloat((initNum * unit.factor).toFixed(5));
+  }
+
+  // Format the conversion string
+  getString(initNum, initUnit, returnNum, returnUnit) {
+    const initUnitString = this.spellOutUnit(initUnit);
+    const returnUnitString = this.spellOutUnit(returnUnit);
+    return `${initNum} ${initUnitString} converts to ${returnNum} ${returnUnitString}`;
+  }
+}
+
+module.exports = ConvertHandler;
