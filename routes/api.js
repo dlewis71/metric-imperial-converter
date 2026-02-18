@@ -3,9 +3,11 @@
 const ConvertHandler = require('../controllers/convertHandler.js');
 
 module.exports = function (app) {
+
   const convertHandler = new ConvertHandler();
 
   app.get('/api/convert', function (req, res) {
+
     const input = req.query.input;
 
     const initNum = convertHandler.getNum(input);
@@ -14,17 +16,21 @@ module.exports = function (app) {
     const numInvalid = initNum === 'invalid number';
     const unitInvalid = initUnit === 'invalid unit';
 
+    // ---- FCC REQUIRED ERROR RESPONSES (PLAIN TEXT) ----
+
     if (numInvalid && unitInvalid) {
-      return res.json('invalid number and unit');
+      return res.send('invalid number and unit');
     }
 
     if (numInvalid) {
-      return res.json('invalid number');
+      return res.send('invalid number');
     }
 
     if (unitInvalid) {
-      return res.json('invalid unit');
+      return res.send('invalid unit');
     }
+
+    // ---- NORMAL CONVERSION ----
 
     const returnUnit = convertHandler.getReturnUnit(initUnit);
     const returnNum = convertHandler.convert(initNum, initUnit);
@@ -42,5 +48,7 @@ module.exports = function (app) {
       returnUnit,
       string
     });
+
   });
+
 };
